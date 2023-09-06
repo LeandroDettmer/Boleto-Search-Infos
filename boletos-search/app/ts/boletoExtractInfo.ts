@@ -35,7 +35,7 @@ function extractBoletoInfo(barcode: string) {
   switch (typeCode) {
     case "LINHA_DIGITAVEL":
       ret.boletoTypeInput = "LINHA_DIGITAVEL";
-      ret.boletoType = identifyTypeBoleto(barcode, "LINHA_DIGITAVEL");
+      ret.boletoType = identifyTypeBoleto(barcode);
       ret.barcode = digitalLine2CodBarras(barcode);
       ret.digitableLine = barcode;
       ret.dueDate = formatDate(identificarData(barcode, "LINHA_DIGITAVEL"));
@@ -44,7 +44,7 @@ function extractBoletoInfo(barcode: string) {
       break;
     case "CODIGO_DE_BARRAS":
       ret.boletoTypeInput = "CODIGO_DE_BARRAS";
-      ret.boletoType = identifyTypeBoleto(barcode, "CODIGO_DE_BARRAS");
+      ret.boletoType = identifyTypeBoleto(barcode);
       ret.barcode = barcode;
       ret.digitableLine = codBarras2LinhaDigitavel(barcode, false);
       ret.dueDate = formatDate(identificarData(barcode, "CODIGO_DE_BARRAS"));
@@ -59,7 +59,7 @@ function extractBoletoInfo(barcode: string) {
   return ret;
 }
 
-function identificarData(codigo, tipoCodigo) {
+function identificarData(codigo: string, tipoCodigo: string) {
   codigo = codigo.replace(/[^0-9]/g, "");
   const tipoBoleto = identifyTypeBoleto(codigo);
 
@@ -90,7 +90,7 @@ function identificarData(codigo, tipoCodigo) {
 
 }
 
-function digitalLine2CodBarras(codigo) {
+function digitalLine2CodBarras(codigo: any) {
   codigo = codigo.replace(/[^0-9]/g, "");
 
   const tipoBoleto = identifyTypeBoleto(codigo);
@@ -119,11 +119,11 @@ function digitalLine2CodBarras(codigo) {
   return resultado;
 }
 
-function getValueCodBarrasArrecadacao(codigo, tipoCodigo) {
+function getValueCodBarrasArrecadacao(codigo: string, tipoCodigo: string) {
   codigo = codigo.replace(/[^0-9]/g, "");
-  const isValorEfetivo = identificarReferencia(codigo).efetivo;
+  const isValorEfetivo = identificarReferencia(codigo)?.efetivo;
 
-  let valorBoleto = "";
+  let valorBoleto: string | string[] = "";
   let valorFinal;
 
   if (isValorEfetivo) {
@@ -152,12 +152,12 @@ function getValueCodBarrasArrecadacao(codigo, tipoCodigo) {
   return valorFinal;
 }
 
-function getValue(codigo, tipoCodigo) {
+function getValue(codigo: string, tipoCodigo: string) {
 
   const tipoBoleto = identifyTypeBoleto(codigo);
 
   let valorBoleto = "";
-  let valorFinal;
+  let valorFinal: any;
 
   if (tipoCodigo == "CODIGO_DE_BARRAS") {
     if (tipoBoleto == "BANCO" || tipoBoleto == "CARTAO_DE_CREDITO") {
@@ -190,7 +190,7 @@ function getValue(codigo, tipoCodigo) {
   return parseFloat(valorFinal);
 }
 
-function identifyBarcodeType(barcode) {
+function identifyBarcodeType(barcode: string) {
   if (typeof barcode !== "string") throw new TypeError("Insira uma string válida!");
 
   barcode = barcode.replace(/[^0-9]/g, "");
@@ -204,7 +204,7 @@ function identifyBarcodeType(barcode) {
   }
 }
 
-function identifyTypeBoleto(codigo) {
+function identifyTypeBoleto(codigo: string) {
   codigo = codigo.replace(/[^0-9]/g, "");
 
   if (typeof codigo !== "string") throw new TypeError("Insira uma string válida!");
@@ -232,14 +232,14 @@ function identifyTypeBoleto(codigo) {
   }
 }
 
-function validateCodeWithDv(barcode, typeCode) {
+function validateCodeWithDv(barcode: string, typeCode: string) {
   barcode = barcode.replace(/[^0-9]/g, "");
   let tipoBoleto;
 
   let resultado;
 
   if (typeCode === "LINHA_DIGITAVEL") {
-    tipoBoleto = identifyTypeBoleto(barcode, "LINHA_DIGITAVEL");
+    tipoBoleto = identifyTypeBoleto(barcode);
 
     if (tipoBoleto == "BANCO" || tipoBoleto == "CARTAO_DE_CREDITO") {
       const bloco1 = barcode.substr(0, 9) + calculaMod10(barcode.substr(0, 9));
@@ -251,17 +251,17 @@ function validateCodeWithDv(barcode, typeCode) {
       resultado = (bloco1 + bloco2 + bloco3 + bloco4 + bloco5).toString();
     } else {
       const identificacaoValorRealOuReferencia = identificarReferencia(barcode);
-      let bloco1;
+      let bloco1: any;
       let bloco2;
       let bloco3;
       let bloco4;
 
-      if (identificacaoValorRealOuReferencia.mod == 10) {
+      if (identificacaoValorRealOuReferencia?.mod == 10) {
         bloco1 = barcode.substr(0, 11) + calculaMod10(barcode.substr(0, 11));
         bloco2 = barcode.substr(12, 11) + calculaMod10(barcode.substr(12, 11));
         bloco3 = barcode.substr(24, 11) + calculaMod10(barcode.substr(24, 11));
         bloco4 = barcode.substr(36, 11) + calculaMod10(barcode.substr(36, 11));
-      } else if (identificacaoValorRealOuReferencia.mod == 11) {
+      } else if (identificacaoValorRealOuReferencia?.mod == 11) {
         bloco1 = barcode.substr(0, 11);
         bloco2 = barcode.substr(12, 11);
         bloco3 = barcode.substr(24, 11);
@@ -289,13 +289,13 @@ function validateCodeWithDv(barcode, typeCode) {
       const DV = calculaDVCodBarras(barcode, 4, 11);
       resultado = barcode.substr(0, 4) + DV + barcode.substr(5);
     } else {
-      const identificacaoValorRealOuReferencia = identificarReferencia(barcode);
+      const identificacaoValorRealOuReferencia: any = identificarReferencia(barcode);
 
       resultado = barcode.split("");
       resultado.splice(3, 1);
       resultado = resultado.join("");
 
-      const DV = calculaDVCodBarras(barcode, 3, identificacaoValorRealOuReferencia.mod);
+      const DV = calculaDVCodBarras(barcode, 3, identificacaoValorRealOuReferencia?.mod);
       resultado = resultado.substr(0, 3) + DV + resultado.substr(3);
 
     }
@@ -304,7 +304,7 @@ function validateCodeWithDv(barcode, typeCode) {
   return barcode === resultado;
 }
 
-function calculaDVCodBarras(codigo, posicaoCodigo, mod) {
+function calculaDVCodBarras(codigo: any, posicaoCodigo: number, mod: number) {
   codigo = codigo.replace(/[^0-9]/g, "");
 
   codigo = codigo.split("");
@@ -318,7 +318,7 @@ function calculaDVCodBarras(codigo, posicaoCodigo, mod) {
   }
 }
 
-function identificarReferencia(codigo) {
+function identificarReferencia(codigo: string) {
   codigo = codigo.replace(/[^0-9]/g, "");
   const referencia = codigo.substr(2, 1);
   if (typeof codigo !== "string") throw new TypeError("Insira uma string válida!");
@@ -352,16 +352,16 @@ function identificarReferencia(codigo) {
   }
 }
 
-function codBarras2LinhaDigitavel(codigo, formatada) {
+function codBarras2LinhaDigitavel(codigo: string, formatada: any) {
   codigo = codigo.replace(/[^0-9]/g, "");
   const tipoBoleto = identifyTypeBoleto(codigo);
   let resultado = "";
   if (tipoBoleto == "BANCO" || tipoBoleto == "CARTAO_DE_CREDITO") {
     const novaLinha = codigo.substr(0, 4) + codigo.substr(19, 25) + codigo.substr(4, 1) + codigo.substr(5, 14);
-    const bloco1 = novaLinha.substr(0, 9) + calculaMod10(novaLinha.substr(0, 9));
-    const bloco2 = novaLinha.substr(9, 10) + calculaMod10(novaLinha.substr(9, 10));
-    const bloco3 = novaLinha.substr(19, 10) + calculaMod10(novaLinha.substr(19, 10));
-    const bloco4 = novaLinha.substr(29);
+    const bloco1: any = novaLinha.substr(0, 9) + calculaMod10(novaLinha.substr(0, 9));
+    const bloco2: any = novaLinha.substr(9, 10) + calculaMod10(novaLinha.substr(9, 10));
+    const bloco3: any = novaLinha.substr(19, 10) + calculaMod10(novaLinha.substr(19, 10));
+    const bloco4: any = novaLinha.substr(29);
     resultado = (bloco1 + bloco2 + bloco3 + bloco4).toString();
     if (formatada) {
       resultado =
@@ -383,17 +383,17 @@ function codBarras2LinhaDigitavel(codigo, formatada) {
     }
   } else {
     const identificacaoValorRealOuReferencia = identificarReferencia(codigo);
-    let bloco1;
-    let bloco2;
-    let bloco3;
-    let bloco4;
+    let bloco1: any;
+    let bloco2: any;
+    let bloco3: any;
+    let bloco4: any;
 
-    if (identificacaoValorRealOuReferencia.mod == 10) {
+    if (identificacaoValorRealOuReferencia?.mod == 10) {
       bloco1 = codigo.substr(0, 11) + calculaMod10(codigo.substr(0, 11));
       bloco2 = codigo.substr(11, 11) + calculaMod10(codigo.substr(11, 11));
       bloco3 = codigo.substr(22, 11) + calculaMod10(codigo.substr(22, 11));
       bloco4 = codigo.substr(33, 11) + calculaMod10(codigo.substr(33, 11));
-    } else if (identificacaoValorRealOuReferencia.mod == 11) {
+    } else if (identificacaoValorRealOuReferencia?.mod == 11) {
       bloco1 = codigo.substr(0, 11) + calculaMod11(codigo.substr(0, 11));
       bloco2 = codigo.substr(11, 11) + calculaMod11(codigo.substr(11, 11));
       bloco3 = codigo.substr(22, 11) + calculaMod11(codigo.substr(22, 11));
@@ -404,7 +404,7 @@ function codBarras2LinhaDigitavel(codigo, formatada) {
   return resultado;
 }
 
-function calculaMod10(numero) {
+function calculaMod10(numero: string | number | any) {
   numero = numero.replace(/\D/g, "");
   let i;
   let mult = 2;
@@ -427,7 +427,7 @@ function calculaMod10(numero) {
   return soma;
 }
 
-function calculaMod11(x) {
+function calculaMod11(x: any) {
   const sequencia = [4, 3, 2, 9, 8, 7, 6, 5];
   let digit = 0;
   let j = 0;

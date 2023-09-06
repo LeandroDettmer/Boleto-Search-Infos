@@ -36,7 +36,7 @@ export default function SearchBarCode() {
           onChange={({ target }) => setBarcodeDigitalLine(target?.value.replace(/[^0-9]/g, ""))} />
         <div>
           
-          <button style={{ backgroundColor: "red", padding: 12, borderRadius: 6 }} onClick={() => searchBoletoInfos(barcodeDigitalLine)}>Buscar</button>
+          <button style={{ backgroundColor: "red", padding: 12, borderRadius: 6 }} onClick={() => searchBoletoInfos(barcodeDigitalLine)}>Search</button>
           
           {boletoInfos.message &&
             <div style={{ margin: 20, padding: 10, backgroundColor: "#fff", borderRadius: 10, color: "black", textAlign: "initial", marginRight: 70, marginLeft: 70 }}>
